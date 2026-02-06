@@ -47,9 +47,9 @@ const Signup = () => {
     }
 
     toast({ 
-      description: 'Account created! Please check your email to verify your account.',
+      description: 'Account created successfully! Welcome to PayGig.',
     });
-    navigate('/login');
+    navigate('/dashboard');
   };
 
   return (

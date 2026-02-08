@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { Copy, Check, Loader2, CheckCircle2, X } from 'lucide-react';
+import { Copy, Check, Loader2, CheckCircle2 } from 'lucide-react';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+} from '@/components/ui/drawer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -107,144 +107,146 @@ export const FundWalletModal = ({
   const quickAmounts = [1000, 5000, 10000, 20000];
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md mx-4">
-        <DialogHeader>
-          <DialogTitle className="font-display text-xl">
+    <Drawer open={open} onOpenChange={handleClose}>
+      <DrawerContent className="max-h-[90vh]">
+        <DrawerHeader>
+          <DrawerTitle className="font-display text-xl">
             {step === 'amount' && 'Fund Wallet'}
             {step === 'bank' && 'Complete Payment'}
             {step === 'verifying' && 'Verifying Transaction...'}
             {step === 'success' && 'Payment Submitted!'}
-          </DialogTitle>
-        </DialogHeader>
+          </DrawerTitle>
+        </DrawerHeader>
 
-        {step === 'amount' && (
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="amount">Enter Amount</Label>
-              <div className="relative mt-1">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">
-                  ₦
-                </span>
-                <Input
-                  id="amount"
-                  type="number"
-                  placeholder="0.00"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  className="pl-8 text-lg font-semibold"
-                />
-              </div>
-            </div>
-            
-            <div className="flex flex-wrap gap-2">
-              {quickAmounts.map((amt) => (
-                <Button
-                  key={amt}
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setAmount(amt.toString())}
-                  className="flex-1"
-                >
-                  ₦{amt.toLocaleString()}
-                </Button>
-              ))}
-            </div>
-
-            <Button onClick={handleProceed} className="w-full gradient-primary text-primary-foreground shadow-button">
-              Proceed to Pay
-            </Button>
-          </div>
-        )}
-
-        {step === 'bank' && bankDetails && (
-          <div className="space-y-4">
-            <div className="bg-accent/20 rounded-xl p-4 border border-accent">
-              <p className="text-sm text-muted-foreground mb-1">Amount to Pay</p>
-              <p className="text-2xl font-display font-bold text-foreground">
-                {formatCurrency(parseFloat(amount))}
-              </p>
-            </div>
-
-            <div className="space-y-3">
-              <div className="bg-secondary rounded-lg p-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-xs text-muted-foreground">Bank Name</p>
-                    <p className="font-semibold">{bankDetails.bank}</p>
-                  </div>
+        <div className="px-4 pb-8">
+          {step === 'amount' && (
+            <div className="space-y-4 animate-fade-in">
+              <div>
+                <Label htmlFor="amount">Enter Amount</Label>
+                <div className="relative mt-1">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">
+                    ₦
+                  </span>
+                  <Input
+                    id="amount"
+                    type="number"
+                    placeholder="0.00"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    className="pl-8 text-lg font-semibold"
+                  />
                 </div>
               </div>
-
-              <div className="bg-secondary rounded-lg p-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-xs text-muted-foreground">Account Number</p>
-                    <p className="font-semibold font-mono text-lg">{bankDetails.acc}</p>
-                  </div>
+              
+              <div className="flex flex-wrap gap-2">
+                {quickAmounts.map((amt) => (
                   <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleCopy(bankDetails.acc)}
-                    className="h-8 w-8"
+                    key={amt}
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setAmount(amt.toString())}
+                    className="flex-1"
                   >
-                    {copied ? <Check className="w-4 h-4 text-success" /> : <Copy className="w-4 h-4" />}
+                    ₦{amt.toLocaleString()}
                   </Button>
-                </div>
+                ))}
               </div>
 
-              <div className="bg-secondary rounded-lg p-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-xs text-muted-foreground">Account Name</p>
-                    <p className="font-semibold">{bankDetails.name}</p>
+              <Button onClick={handleProceed} className="w-full gradient-primary text-primary-foreground shadow-button">
+                Proceed to Pay
+              </Button>
+            </div>
+          )}
+
+          {step === 'bank' && bankDetails && (
+            <div className="space-y-4 animate-fade-in">
+              <div className="bg-accent/20 rounded-xl p-4 border border-accent">
+                <p className="text-sm text-muted-foreground mb-1">Amount to Pay</p>
+                <p className="text-2xl font-display font-bold text-foreground">
+                  {formatCurrency(parseFloat(amount))}
+                </p>
+              </div>
+
+              <div className="space-y-3">
+                <div className="bg-secondary rounded-lg p-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-muted-foreground">Bank Name</p>
+                      <p className="font-semibold">{bankDetails.bank}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-secondary rounded-lg p-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-muted-foreground">Account Number</p>
+                      <p className="font-semibold font-mono text-lg">{bankDetails.acc}</p>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleCopy(bankDetails.acc)}
+                      className="h-8 w-8"
+                    >
+                      {copied ? <Check className="w-4 h-4 text-success" /> : <Copy className="w-4 h-4" />}
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="bg-secondary rounded-lg p-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-muted-foreground">Account Name</p>
+                      <p className="font-semibold">{bankDetails.name}</p>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            <div className="bg-warning/10 border border-warning/30 rounded-lg p-3">
-              <p className="text-xs text-center text-warning-foreground">
-                ⚠️ Transfer exact amount of <strong>{formatCurrency(parseFloat(amount))}</strong> to avoid delays
-              </p>
-            </div>
+              <div className="bg-warning/10 border border-warning/30 rounded-lg p-3">
+                <p className="text-xs text-center text-warning-foreground">
+                  ⚠️ Transfer exact amount of <strong>{formatCurrency(parseFloat(amount))}</strong> to avoid delays
+                </p>
+              </div>
 
-            <Button onClick={handleConfirmPayment} className="w-full gradient-primary text-primary-foreground shadow-button">
-              I've Sent the Money
-            </Button>
-          </div>
-        )}
+              <Button onClick={handleConfirmPayment} className="w-full gradient-primary text-primary-foreground shadow-button">
+                I've Sent the Money
+              </Button>
+            </div>
+          )}
 
-        {step === 'verifying' && (
-          <div className="py-8 space-y-6 text-center">
-            <Loader2 className="w-16 h-16 mx-auto text-primary animate-spin" />
-            <div>
-              <p className="font-semibold mb-2">Verifying Your Transaction</p>
-              <p className="text-sm text-muted-foreground">
-                Please wait while we confirm your payment...
-              </p>
+          {step === 'verifying' && (
+            <div className="py-8 space-y-6 text-center animate-fade-in">
+              <Loader2 className="w-16 h-16 mx-auto text-primary animate-spin" />
+              <div>
+                <p className="font-semibold mb-2">Verifying Your Transaction</p>
+                <p className="text-sm text-muted-foreground">
+                  Please wait while we confirm your payment...
+                </p>
+              </div>
+              <Progress value={progress} className="h-2" />
             </div>
-            <Progress value={progress} className="h-2" />
-          </div>
-        )}
+          )}
 
-        {step === 'success' && (
-          <div className="py-8 space-y-6 text-center">
-            <div className="w-20 h-20 mx-auto rounded-full bg-success/20 flex items-center justify-center">
-              <CheckCircle2 className="w-12 h-12 text-success" />
+          {step === 'success' && (
+            <div className="py-8 space-y-6 text-center animate-scale-in">
+              <div className="w-20 h-20 mx-auto rounded-full bg-success/20 flex items-center justify-center">
+                <CheckCircle2 className="w-12 h-12 text-success" />
+              </div>
+              <div>
+                <p className="font-display font-bold text-xl mb-2">Payment Submitted!</p>
+                <p className="text-sm text-muted-foreground">
+                  Your wallet will be credited instantly upon confirmation.
+                </p>
+              </div>
+              <Button onClick={handleClose} className="w-full gradient-primary text-primary-foreground shadow-button">
+                Done
+              </Button>
             </div>
-            <div>
-              <p className="font-display font-bold text-xl mb-2">Payment Submitted!</p>
-              <p className="text-sm text-muted-foreground">
-                Your wallet will be credited instantly upon confirmation.
-              </p>
-            </div>
-            <Button onClick={handleClose} className="w-full">
-              Done
-            </Button>
-          </div>
-        )}
-      </DialogContent>
-    </Dialog>
+          )}
+        </div>
+      </DrawerContent>
+    </Drawer>
   );
 };

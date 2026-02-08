@@ -36,6 +36,8 @@ export type Database = {
           email: string
           id: string
           phone: string | null
+          referral_code: string | null
+          referred_by: string | null
         }
         Insert: {
           balance?: number
@@ -43,6 +45,8 @@ export type Database = {
           email: string
           id: string
           phone?: string | null
+          referral_code?: string | null
+          referred_by?: string | null
         }
         Update: {
           balance?: number
@@ -50,8 +54,18 @@ export type Database = {
           email?: string
           id?: string
           phone?: string | null
+          referral_code?: string | null
+          referred_by?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_referred_by_fkey"
+            columns: ["referred_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       transactions: {
         Row: {
@@ -91,7 +105,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      lookup_referral_code: { Args: { _code: string }; Returns: string }
     }
     Enums: {
       [_ in never]: never

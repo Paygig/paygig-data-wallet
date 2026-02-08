@@ -7,6 +7,8 @@ export type Profile = {
   email: string;
   phone: string | null;
   balance: number;
+  referral_code: string;
+  referred_by: string | null;
   created_at: string;
 };
 

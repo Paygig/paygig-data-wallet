@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,6 +9,9 @@ import { useToast } from '@/hooks/use-toast';
 import logo from '@/assets/logo.png';
 
 const Signup = () => {
+  const [searchParams] = useSearchParams();
+  const referralCode = searchParams.get('ref') || '';
+
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
@@ -38,7 +41,7 @@ const Signup = () => {
     }
 
     setLoading(true);
-    const { error } = await signUp(email, password, phone);
+    const { error } = await signUp(email, password, phone, referralCode || undefined);
     setLoading(false);
 
     if (error) {
@@ -55,7 +58,7 @@ const Signup = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
-      <div className="gradient-hero px-6 pt-12 pb-16 rounded-b-[2rem]">
+      <div className="gradient-hero-dark px-6 pt-12 pb-16 rounded-b-[2rem]">
         <div className="flex flex-col items-center text-center">
           <img src={logo} alt="PayGig" className="w-20 h-20 mb-4 drop-shadow-lg" />
           <h1 className="font-display font-bold text-2xl text-primary-foreground mb-1">
@@ -70,6 +73,14 @@ const Signup = () => {
       {/* Form */}
       <div className="flex-1 px-6 py-8 -mt-6">
         <div className="bg-card rounded-2xl p-6 shadow-card border border-border">
+          {referralCode && (
+            <div className="bg-accent/20 border border-accent/40 rounded-lg p-3 mb-4">
+              <p className="text-xs text-center font-medium">
+                🎁 Referred by code: <span className="font-mono font-bold">{referralCode}</span>
+              </p>
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <Label htmlFor="email">Email Address</Label>

@@ -64,7 +64,7 @@ const Dashboard = () => {
       />
 
       {/* Header */}
-      <header className="gradient-hero px-5 pt-7 pb-12 rounded-b-[2rem]">
+      <header className="gradient-hero-dark px-5 pt-7 pb-12 rounded-b-[2rem]">
         <div className="flex items-center justify-between mb-8 animate-fade-in">
           <div className="flex items-center gap-3">
             <img src={logo} alt="PayGig" className="w-11 h-11 rounded-xl shadow-md" />

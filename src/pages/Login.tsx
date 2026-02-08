@@ -40,7 +40,7 @@ const Login = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
-      <div className="gradient-hero px-6 pt-12 pb-16 rounded-b-[2rem]">
+      <div className="gradient-hero-dark px-6 pt-12 pb-16 rounded-b-[2rem]">
         <div className="flex flex-col items-center text-center">
           <img src={logo} alt="PayGig" className="w-20 h-20 mb-4 drop-shadow-lg" />
           <h1 className="font-display font-bold text-2xl text-primary-foreground mb-1">

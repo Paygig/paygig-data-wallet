@@ -117,7 +117,7 @@ export const FundWalletModal = ({
             {step === 'amount' && 'Fund Your Wallet'}
             {step === 'bank' && 'Complete Payment'}
             {step === 'verifying' && 'Confirming Payment'}
-            {step === 'success' && 'Payment Successful'}
+            {step === 'success' && 'Payment Submitted'}
           </DrawerTitle>
         </DrawerHeader>
 
@@ -259,9 +259,9 @@ export const FundWalletModal = ({
               </div>
 
               <div className="space-y-2">
-                <h3 className="font-display font-bold text-2xl text-foreground">Payment Successful!</h3>
+                <h3 className="font-display font-bold text-2xl text-foreground">Payment Submitted!</h3>
                 <p className="text-muted-foreground">
-                  Your wallet has been credited with
+                  Your transaction is being processed. Your wallet will be credited once confirmed.
                 </p>
                 <div className="bg-muted/30 py-2 px-4 rounded-lg inline-block mt-2">
                   <span className="text-xl font-bold font-display text-primary">

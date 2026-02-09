@@ -69,13 +69,36 @@ serve(async (req) => {
 
       const parts = data.split('_');
       const action = parts[0];
-      const transactionId = parts[1];
+      const idOrUser = parts[1];
 
-      const { data: tx } = await supabase
+      let tx;
+
+      // Try fetching by transaction ID first (new format)
+      const { data: txById } = await supabase
         .from('transactions')
         .select('*')
-        .eq('id', transactionId)
+        .eq('id', idOrUser)
         .maybeSingle();
+
+      if (txById) {
+        tx = txById;
+      } else {
+        // Fallback: Try legacy format (userId_amount)
+        const amount = parseFloat(parts[2]);
+        if (amount && !isNaN(amount)) {
+          const { data: txLegacy } = await supabase
+            .from('transactions')
+            .select('*')
+            .eq('user_id', idOrUser)
+            .eq('type', 'deposit')
+            .eq('status', 'pending')
+            .eq('amount', amount)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+          tx = txLegacy;
+        }
+      }
 
       if (!tx) {
         await answerCallback(cbId, '❌ Transaction not found or already processed');

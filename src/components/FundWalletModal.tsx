@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Copy, Check, Loader2, CheckCircle2 } from 'lucide-react';
 import {
   Drawer,
@@ -6,6 +6,12 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from '@/components/ui/drawer';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -14,6 +20,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { formatCurrency, type BankDetails } from '@/lib/supabase';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 type FundWalletModalProps = {
   open: boolean;
@@ -29,6 +36,7 @@ export const FundWalletModal = ({
   bankDetails,
 }: FundWalletModalProps) => {
   const [step, setStep] = useState<Step>('amount');
+  const isMobile = useIsMobile();
   const [amount, setAmount] = useState('');
   const [copied, setCopied] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -109,6 +117,182 @@ export const FundWalletModal = ({
 
   const quickAmounts = [1000, 5000, 10000, 20000];
 
+  const Content = (
+    <div className="px-6 py-6 overflow-y-auto">
+      {step === 'amount' && (
+        <div className="space-y-6 animate-fade-in max-w-sm mx-auto">
+          <div className="flex flex-col items-center">
+            <span className="text-sm font-medium text-muted-foreground mb-2">How much would you like to add?</span>
+            <div className="relative w-full max-w-[200px]">
+              <span className="absolute left-0 top-1/2 -translate-y-1/2 text-muted-foreground font-medium text-2xl">
+                ₦
+              </span>
+              <Input
+                id="amount"
+                type="number"
+                placeholder="0"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                className="pl-8 text-3xl font-bold border-none shadow-none text-center h-14 bg-transparent focus-visible:ring-0 px-0"
+                autoFocus
+              />
+            </div>
+            <div className="h-[1px] w-full bg-border mt-1" />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            {quickAmounts.map((amt) => (
+              <Button
+                key={amt}
+                variant="outline"
+                onClick={() => setAmount(amt.toString())}
+                className="h-12 border-border/40 hover:bg-primary/5 hover:border-primary/30 transition-all font-medium"
+              >
+                ₦{amt.toLocaleString()}
+              </Button>
+            ))}
+          </div>
+
+          <Button
+            onClick={handleProceed}
+            className="w-full h-12 gradient-primary text-primary-foreground shadow-lg shadow-primary/20 font-semibold text-lg rounded-xl mt-4"
+          >
+            Continue to Payment
+          </Button>
+        </div>
+      )}
+
+      {step === 'bank' && bankDetails && (
+        <div className="space-y-6 animate-fade-in max-w-sm mx-auto">
+          <div className="text-center mb-2">
+            <p className="text-sm text-muted-foreground">Transfer exactly</p>
+            <p className="text-3xl font-bold font-display text-primary mt-1">
+              {formatCurrency(parseFloat(amount))}
+            </p>
+          </div>
+
+          <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-border/40 overflow-hidden">
+            <div className="p-4 border-b border-border/10">
+              <p className="text-xs text-muted-foreground uppercase tracking-widest text-center font-medium">Bank Details</p>
+            </div>
+
+            <div className="p-5 space-y-6">
+              <div className="flex flex-col items-center gap-1.5">
+                <span className="text-sm text-muted-foreground">Bank Name</span>
+                <span className="font-bold text-lg">{bankDetails.bank}</span>
+              </div>
+
+              <div className="bg-zinc-100 dark:bg-zinc-800/50 rounded-xl p-4 flex flex-col items-center justify-center relative group cursor-pointer hover:bg-zinc-200/50 dark:hover:bg-zinc-800 transition-colors"
+                onClick={() => handleCopy(bankDetails.acc)}>
+                <span className="text-xs text-muted-foreground mb-1 uppercase tracking-wider">Account Number</span>
+                <div className="flex items-center gap-3">
+                  <span className="font-mono text-2xl font-bold tracking-widest text-foreground">
+                    {bankDetails.acc}
+                  </span>
+                  {copied ? (
+                    <Check className="w-5 h-5 text-green-500 animate-in zoom-in" />
+                  ) : (
+                    <Copy className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" />
+                  )}
+                </div>
+              </div>
+
+              <div className="flex flex-col items-center gap-1.5 pt-1">
+                <span className="text-sm text-muted-foreground">Account Name</span>
+                <span className="font-medium text-center">{bankDetails.name}</span>
+              </div>
+            </div>
+
+            <div className="bg-amber-50 dark:bg-amber-950/30 p-3 text-center border-t border-amber-100 dark:border-amber-900/50">
+              <p className="text-xs text-amber-700 dark:text-amber-400 font-medium flex items-center justify-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                Use this account for this transaction only
+              </p>
+            </div>
+          </div>
+
+          <Button
+            onClick={handleConfirmPayment}
+            className="w-full h-12 gradient-primary text-primary-foreground shadow-lg shadow-primary/20 font-semibold text-lg rounded-xl"
+          >
+            I've Sent the Money
+          </Button>
+
+          <Button
+            variant="ghost"
+            onClick={() => setStep('amount')}
+            className="w-full text-muted-foreground hover:text-foreground"
+          >
+            Cancel and go back
+          </Button>
+        </div>
+      )}
+
+      {step === 'verifying' && (
+        <div className="py-12 space-y-8 text-center animate-fade-in max-w-xs mx-auto">
+          <div className="relative">
+            <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full animate-pulse" />
+            <Loader2 className="w-20 h-20 mx-auto text-primary animate-spin relative z-10" />
+          </div>
+          <div className="space-y-2">
+            <h3 className="font-bold text-xl">Verifying Transaction</h3>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Please hold on tight while we confirm your payment with the bank server...
+            </p>
+          </div>
+          <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
+            <div
+              className="bg-primary h-full transition-all duration-300 ease-out"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+        </div>
+      )}
+
+      {step === 'success' && (
+        <div className="py-8 space-y-8 text-center animate-scale-in max-w-sm mx-auto">
+          <div className="w-24 h-24 mx-auto rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center mb-6">
+            <CheckCircle2 className="w-14 h-14 text-green-600 dark:text-green-500" />
+          </div>
+
+          <div className="space-y-2">
+            <h3 className="font-display font-bold text-2xl text-foreground">Payment Submitted!</h3>
+            <p className="text-muted-foreground">
+              Your transaction is being processed. Your wallet will be credited once confirmed.
+            </p>
+            <div className="bg-muted/30 py-2 px-4 rounded-lg inline-block mt-2">
+              <span className="text-xl font-bold font-display text-primary">
+                +{formatCurrency(parseFloat(amount))}
+              </span>
+            </div>
+          </div>
+
+          <Button onClick={handleClose} className="w-full h-12 gradient-success text-white shadow-lg shadow-green-500/20 font-semibold text-lg rounded-xl mt-4">
+            Done
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+
+  if (!isMobile) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-[425px] p-0 overflow-hidden bg-zinc-50 dark:bg-zinc-950 border-none">
+          <DialogHeader className="pt-6 px-6 border-b border-border/10 pb-4">
+            <DialogTitle className="font-display text-xl text-center">
+              {step === 'amount' && 'Fund Your Wallet'}
+              {step === 'bank' && 'Complete Payment'}
+              {step === 'verifying' && 'Confirming Payment'}
+              {step === 'success' && 'Payment Submitted'}
+            </DialogTitle>
+          </DialogHeader>
+          {Content}
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
   return (
     <Drawer open={open} onOpenChange={handleClose}>
       <DrawerContent className="max-h-[90vh] bg-zinc-50 dark:bg-zinc-950">
@@ -120,162 +304,7 @@ export const FundWalletModal = ({
             {step === 'success' && 'Payment Submitted'}
           </DrawerTitle>
         </DrawerHeader>
-
-        <div className="px-6 py-6 overflow-y-auto">
-          {step === 'amount' && (
-            <div className="space-y-6 animate-fade-in max-w-sm mx-auto">
-              <div className="flex flex-col items-center">
-                <span className="text-sm font-medium text-muted-foreground mb-2">How much would you like to add?</span>
-                <div className="relative w-full max-w-[200px]">
-                  <span className="absolute left-0 top-1/2 -translate-y-1/2 text-muted-foreground font-medium text-2xl">
-                    ₦
-                  </span>
-                  <Input
-                    id="amount"
-                    type="number"
-                    placeholder="0"
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                    className="pl-8 text-3xl font-bold border-none shadow-none text-center h-14 bg-transparent focus-visible:ring-0 px-0"
-                    autoFocus
-                  />
-                </div>
-                <div className="h-[1px] w-full bg-border mt-1" />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                {quickAmounts.map((amt) => (
-                  <Button
-                    key={amt}
-                    variant="outline"
-                    onClick={() => setAmount(amt.toString())}
-                    className="h-12 border-border/40 hover:bg-primary/5 hover:border-primary/30 transition-all font-medium"
-                  >
-                    ₦{amt.toLocaleString()}
-                  </Button>
-                ))}
-              </div>
-
-              <Button
-                onClick={handleProceed}
-                className="w-full h-12 gradient-primary text-primary-foreground shadow-lg shadow-primary/20 font-semibold text-lg rounded-xl mt-4"
-              >
-                Continue to Payment
-              </Button>
-            </div>
-          )}
-
-          {step === 'bank' && bankDetails && (
-            <div className="space-y-6 animate-fade-in max-w-sm mx-auto">
-              <div className="text-center mb-2">
-                <p className="text-sm text-muted-foreground">Transfer exactly</p>
-                <p className="text-3xl font-bold font-display text-primary mt-1">
-                  {formatCurrency(parseFloat(amount))}
-                </p>
-              </div>
-
-              <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-border/40 overflow-hidden">
-                <div className="p-4 border-b border-border/10">
-                  <p className="text-xs text-muted-foreground uppercase tracking-widest text-center font-medium">Bank Details</p>
-                </div>
-
-                <div className="p-5 space-y-6">
-                  <div className="flex flex-col items-center gap-1.5">
-                    <span className="text-sm text-muted-foreground">Bank Name</span>
-                    <span className="font-bold text-lg">{bankDetails.bank}</span>
-                  </div>
-
-                  <div className="bg-zinc-100 dark:bg-zinc-800/50 rounded-xl p-4 flex flex-col items-center justify-center relative group cursor-pointer hover:bg-zinc-200/50 dark:hover:bg-zinc-800 transition-colors"
-                    onClick={() => handleCopy(bankDetails.acc)}>
-                    <span className="text-xs text-muted-foreground mb-1 uppercase tracking-wider">Account Number</span>
-                    <div className="flex items-center gap-3">
-                      <span className="font-mono text-2xl font-bold tracking-widest text-foreground">
-                        {bankDetails.acc}
-                      </span>
-                      {copied ? (
-                        <Check className="w-5 h-5 text-green-500 animate-in zoom-in" />
-                      ) : (
-                        <Copy className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" />
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col items-center gap-1.5 pt-1">
-                    <span className="text-sm text-muted-foreground">Account Name</span>
-                    <span className="font-medium text-center">{bankDetails.name}</span>
-                  </div>
-                </div>
-
-                <div className="bg-amber-50 dark:bg-amber-950/30 p-3 text-center border-t border-amber-100 dark:border-amber-900/50">
-                  <p className="text-xs text-amber-700 dark:text-amber-400 font-medium flex items-center justify-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-                    Use this account for this transaction only
-                  </p>
-                </div>
-              </div>
-
-              <Button
-                onClick={handleConfirmPayment}
-                className="w-full h-12 gradient-primary text-primary-foreground shadow-lg shadow-primary/20 font-semibold text-lg rounded-xl"
-              >
-                I've Sent the Money
-              </Button>
-
-              <Button
-                variant="ghost"
-                onClick={() => setStep('amount')}
-                className="w-full text-muted-foreground hover:text-foreground"
-              >
-                Cancel and go back
-              </Button>
-            </div>
-          )}
-
-          {step === 'verifying' && (
-            <div className="py-12 space-y-8 text-center animate-fade-in max-w-xs mx-auto">
-              <div className="relative">
-                <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full animate-pulse" />
-                <Loader2 className="w-20 h-20 mx-auto text-primary animate-spin relative z-10" />
-              </div>
-              <div className="space-y-2">
-                <h3 className="font-bold text-xl">Verifying Transaction</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  Please hold on tight while we confirm your payment with the bank server...
-                </p>
-              </div>
-              <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
-                <div
-                  className="bg-primary h-full transition-all duration-300 ease-out"
-                  style={{ width: `${progress}%` }}
-                />
-              </div>
-            </div>
-          )}
-
-          {step === 'success' && (
-            <div className="py-8 space-y-8 text-center animate-scale-in max-w-sm mx-auto">
-              <div className="w-24 h-24 mx-auto rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center mb-6">
-                <CheckCircle2 className="w-14 h-14 text-green-600 dark:text-green-500" />
-              </div>
-
-              <div className="space-y-2">
-                <h3 className="font-display font-bold text-2xl text-foreground">Payment Submitted!</h3>
-                <p className="text-muted-foreground">
-                  Your transaction is being processed. Your wallet will be credited once confirmed.
-                </p>
-                <div className="bg-muted/30 py-2 px-4 rounded-lg inline-block mt-2">
-                  <span className="text-xl font-bold font-display text-primary">
-                    +{formatCurrency(parseFloat(amount))}
-                  </span>
-                </div>
-              </div>
-
-              <Button onClick={handleClose} className="w-full h-12 gradient-success text-white shadow-lg shadow-green-500/20 font-semibold text-lg rounded-xl mt-4">
-                Done
-              </Button>
-            </div>
-          )}
-        </div>
+        {Content}
       </DrawerContent>
     </Drawer>
   );

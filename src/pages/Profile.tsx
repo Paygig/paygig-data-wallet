@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Mail, Phone, Lock, LogOut, Loader2, Share2, Copy, Check, Gift } from 'lucide-react';
+import { Mail, Phone, Lock, LogOut, Loader2, Share2, Copy, Check, Gift, User } from 'lucide-react';
 import { BottomNav } from '@/components/BottomNav';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,7 +15,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
-import logo from '@/assets/logo.png';
+
 
 const Profile = () => {
   const { profile, signOut } = useAuth();
@@ -105,7 +105,7 @@ const Profile = () => {
         <div className="bg-card rounded-2xl p-6 shadow-card border border-border animate-fade-in">
           <div className="flex flex-col items-center mb-6">
             <div className="w-20 h-20 rounded-full gradient-primary flex items-center justify-center mb-3">
-              <img src={logo} alt="PayGig" className="w-12 h-12" />
+              <User className="w-10 h-10 text-primary-foreground" />
             </div>
             <p className="font-display font-bold text-lg">
               {profile?.email?.split('@')[0] || 'User'}

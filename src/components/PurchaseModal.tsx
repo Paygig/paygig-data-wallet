@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Loader2, CheckCircle2, Copy, Check, AlertCircle, Phone } from 'lucide-react';
+import { Loader2, CheckCircle2, Copy, Check, AlertCircle, Phone, Gift } from 'lucide-react';
 import {
   Drawer,
   DrawerContent,
@@ -20,8 +20,10 @@ type PurchaseModalProps = {
     data: string;
     price: number;
     validity: string;
+    bonusEligible?: boolean;
   } | null;
   userBalance: number;
+  bonusBalance: number;
   onSuccess: () => void;
 };
 
@@ -32,6 +34,7 @@ export const PurchaseModal = ({
   onOpenChange,
   plan,
   userBalance,
+  bonusBalance,
   onSuccess,
 }: PurchaseModalProps) => {
   const [step, setStep] = useState<Step>('confirm');
@@ -41,7 +44,6 @@ export const PurchaseModal = ({
   const { toast } = useToast();
   const { user, refreshProfile } = useAuth();
 
-  // Reset when opening
   useEffect(() => {
     if (open) {
       setStep('confirm');
@@ -50,10 +52,14 @@ export const PurchaseModal = ({
     }
   }, [open]);
 
+  const effectiveBalance = plan?.bonusEligible
+    ? userBalance + bonusBalance
+    : userBalance;
+
   const handlePurchase = async () => {
     if (!plan || !user) return;
 
-    if (userBalance < plan.price) {
+    if (effectiveBalance < plan.price) {
       setStep('insufficient');
       return;
     }
@@ -62,10 +68,16 @@ export const PurchaseModal = ({
 
     const code = generateCouponCode();
 
-    // Deduct balance
+    // Calculate deductions
+    const bonusToUse = plan.bonusEligible ? Math.min(bonusBalance, plan.price) : 0;
+    const balanceToDeduct = plan.price - bonusToUse;
+
     const { error: balanceError } = await supabase
       .from('profiles')
-      .update({ balance: userBalance - plan.price })
+      .update({
+        balance: userBalance - balanceToDeduct,
+        bonus_balance: bonusBalance - bonusToUse,
+      })
       .eq('id', user.id);
 
     if (balanceError) {
@@ -74,7 +86,6 @@ export const PurchaseModal = ({
       return;
     }
 
-    // Create transaction
     const { error: txError } = await supabase.from('transactions').insert({
       user_id: user.id,
       type: 'purchase',
@@ -92,7 +103,6 @@ export const PurchaseModal = ({
 
     setCouponCode(code);
 
-    // 5 second spinner before revealing code
     setTimeout(async () => {
       await refreshProfile();
       setShowSuccess(true);
@@ -117,6 +127,8 @@ export const PurchaseModal = ({
   };
 
   if (!plan) return null;
+
+  const bonusUsed = plan.bonusEligible ? Math.min(bonusBalance, plan.price) : 0;
 
   return (
     <Drawer open={open} onOpenChange={handleClose}>
@@ -155,12 +167,31 @@ export const PurchaseModal = ({
                 </div>
               </div>
 
-              <div className="bg-muted rounded-lg p-3">
+              <div className="bg-muted rounded-lg p-3 space-y-2">
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-muted-foreground">Your Balance</span>
                   <span className="font-semibold">{formatCurrency(userBalance)}</span>
                 </div>
+                {plan.bonusEligible && bonusBalance > 0 && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground flex items-center gap-1">
+                      <Gift className="w-3.5 h-3.5 text-accent" />
+                      Bonus Applied
+                    </span>
+                    <span className="font-semibold text-accent">
+                      -{formatCurrency(bonusUsed)}
+                    </span>
+                  </div>
+                )}
               </div>
+
+              {plan.bonusEligible && bonusBalance > 0 && (
+                <div className="bg-accent/10 border border-accent/30 rounded-lg p-2.5">
+                  <p className="text-xs text-center text-accent-foreground">
+                    🎁 ₦{bonusUsed.toLocaleString()} signup bonus applied to this plan!
+                  </p>
+                </div>
+              )}
 
               <Button
                 onClick={handlePurchase}
@@ -194,7 +225,6 @@ export const PurchaseModal = ({
                 <div className="w-24 h-24 mx-auto rounded-full bg-success/20 flex items-center justify-center animate-[bounce-in_0.6s_ease-out]">
                   <CheckCircle2 className="w-14 h-14 text-success animate-[check-pop_0.4s_ease-out_0.3s_both]" />
                 </div>
-                {/* Celebration particles */}
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                   {[...Array(8)].map((_, i) => (
                     <div
@@ -219,7 +249,6 @@ export const PurchaseModal = ({
                 </div>
               </div>
 
-              {/* Redeem instructions */}
               <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 text-left">
                 <div className="flex items-center gap-2 mb-2">
                   <Phone className="w-4 h-4 text-primary" />
@@ -249,7 +278,7 @@ export const PurchaseModal = ({
               <div>
                 <p className="font-display font-bold text-xl mb-2">Insufficient Balance</p>
                 <p className="text-sm text-muted-foreground">
-                  You need {formatCurrency(plan.price - userBalance)} more to complete this purchase.
+                  You need {formatCurrency(plan.price - effectiveBalance)} more to complete this purchase.
                 </p>
               </div>
 

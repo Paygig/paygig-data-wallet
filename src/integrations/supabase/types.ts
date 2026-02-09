@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      activity_logs: {
+        Row: {
+          created_at: string
+          details: string | null
+          id: string
+          type: string
+          user_email: string | null
+        }
+        Insert: {
+          created_at?: string
+          details?: string | null
+          id?: string
+          type: string
+          user_email?: string | null
+        }
+        Update: {
+          created_at?: string
+          details?: string | null
+          id?: string
+          type?: string
+          user_email?: string | null
+        }
+        Relationships: []
+      }
       app_settings: {
         Row: {
           key: string
@@ -32,6 +56,7 @@ export type Database = {
       profiles: {
         Row: {
           balance: number
+          bonus_balance: number
           created_at: string
           email: string
           id: string
@@ -41,6 +66,7 @@ export type Database = {
         }
         Insert: {
           balance?: number
+          bonus_balance?: number
           created_at?: string
           email: string
           id: string
@@ -50,6 +76,7 @@ export type Database = {
         }
         Update: {
           balance?: number
+          bonus_balance?: number
           created_at?: string
           email?: string
           id?: string

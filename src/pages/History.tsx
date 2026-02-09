@@ -14,22 +14,47 @@ import { formatCurrency, type Transaction } from '@/lib/supabase';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 
+const typeFilters = [
+  { value: 'all', label: 'All' },
+  { value: 'deposit', label: 'Deposits' },
+  { value: 'purchase', label: 'Purchases' },
+];
+
+const statusFilters = [
+  { value: 'all', label: 'All Status' },
+  { value: 'pending', label: 'Pending' },
+  { value: 'success', label: 'Success' },
+  { value: 'failed', label: 'Failed' },
+];
+
 const History = () => {
   const { user } = useAuth();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCoupon, setSelectedCoupon] = useState<string | null>(null);
   const [couponVisible, setCouponVisible] = useState(false);
+  const [typeFilter, setTypeFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
 
   useEffect(() => {
     const fetchTransactions = async () => {
       if (!user) return;
+      setLoading(true);
       
-      const { data } = await supabase
+      let query = supabase
         .from('transactions')
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
+
+      if (typeFilter !== 'all') {
+        query = query.eq('type', typeFilter);
+      }
+      if (statusFilter !== 'all') {
+        query = query.eq('status', statusFilter);
+      }
+      
+      const { data } = await query;
       
       if (data) {
         setTransactions(data as Transaction[]);
@@ -38,7 +63,7 @@ const History = () => {
     };
 
     fetchTransactions();
-  }, [user]);
+  }, [user, typeFilter, statusFilter]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -60,6 +85,45 @@ const History = () => {
         <h1 className="font-display font-bold text-xl text-center">Transaction History</h1>
       </header>
 
+      {/* Filters */}
+      <div className="px-4 pt-4 space-y-3">
+        {/* Type filter */}
+        <div className="flex gap-2">
+          {typeFilters.map((f) => (
+            <button
+              key={f.value}
+              onClick={() => setTypeFilter(f.value)}
+              className={cn(
+                'px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all',
+                typeFilter === f.value
+                  ? 'bg-primary text-primary-foreground shadow-sm'
+                  : 'bg-muted text-muted-foreground hover:bg-muted/80'
+              )}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Status filter */}
+        <div className="flex gap-2">
+          {statusFilters.map((f) => (
+            <button
+              key={f.value}
+              onClick={() => setStatusFilter(f.value)}
+              className={cn(
+                'px-3 py-1.5 rounded-full text-xs font-medium transition-all',
+                statusFilter === f.value
+                  ? 'bg-accent text-accent-foreground shadow-sm'
+                  : 'bg-secondary text-muted-foreground hover:bg-secondary/80'
+              )}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Transactions */}
       <div className="px-4 py-4">
         {loading ? (
@@ -74,8 +138,12 @@ const History = () => {
         ) : transactions.length === 0 ? (
           <div className="text-center py-12">
             <Package className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-            <p className="text-muted-foreground">No transactions yet</p>
-            <p className="text-sm text-muted-foreground">Your transaction history will appear here</p>
+            <p className="text-muted-foreground">No transactions found</p>
+            <p className="text-sm text-muted-foreground">
+              {typeFilter !== 'all' || statusFilter !== 'all'
+                ? 'Try changing your filters'
+                : 'Your transaction history will appear here'}
+            </p>
           </div>
         ) : (
           <div className="space-y-3">

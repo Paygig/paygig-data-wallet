@@ -52,17 +52,19 @@ export const FundWalletModal = ({
 
   const handleConfirmPayment = async () => {
     if (!user) return;
-    
+
     setStep('verifying');
-    
+
     // Create pending transaction
-    const { error } = await supabase.from('transactions').insert({
+    const { data, error } = await supabase.from('transactions').insert({
       user_id: user.id,
       type: 'deposit',
       amount: parseFloat(amount),
       status: 'pending',
       description: `Wallet funding - ${formatCurrency(parseFloat(amount))}`,
-    });
+    })
+      .select()
+      .single();
 
     if (error) {
       toast({ description: 'Failed to create transaction', variant: 'destructive' });
@@ -78,6 +80,7 @@ export const FundWalletModal = ({
           email: user.email,
           amount: parseFloat(amount),
           userId: user.id,
+          transactionId: data?.id,
         },
       });
     } catch (e) {
@@ -137,7 +140,7 @@ export const FundWalletModal = ({
                   />
                 </div>
               </div>
-              
+
               <div className="flex flex-wrap gap-2">
                 {quickAmounts.map((amt) => (
                   <Button
@@ -168,38 +171,43 @@ export const FundWalletModal = ({
               </div>
 
               <div className="space-y-3">
-                <div className="bg-secondary rounded-lg p-3">
+                <div className="bg-secondary/50 rounded-lg p-3 border border-border/50">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-xs text-muted-foreground">Bank Name</p>
-                      <p className="font-semibold">{bankDetails.bank}</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-secondary rounded-lg p-3">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-xs text-muted-foreground">Account Number</p>
-                      <p className="font-semibold font-mono text-lg">{bankDetails.acc}</p>
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider">Account Number</p>
+                      <div className="flex items-center gap-2">
+                        <p className="font-mono text-xl font-bold tracking-widest">{bankDetails.acc}</p>
+                      </div>
                     </div>
                     <Button
-                      variant="ghost"
-                      size="icon"
+                      variant="outline"
+                      size="sm"
                       onClick={() => handleCopy(bankDetails.acc)}
-                      className="h-8 w-8"
+                      className="h-9 px-3 gap-2 bg-background hover:bg-accent"
                     >
-                      {copied ? <Check className="w-4 h-4 text-success" /> : <Copy className="w-4 h-4" />}
+                      {copied ? (
+                        <>
+                          <Check className="w-3.5 h-3.5 text-green-500" />
+                          <span className="text-green-500 font-medium">Copied</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-3.5 h-3.5" />
+                          <span>Copy</span>
+                        </>
+                      )}
                     </Button>
                   </div>
                 </div>
 
-                <div className="bg-secondary rounded-lg p-3">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-xs text-muted-foreground">Account Name</p>
-                      <p className="font-semibold">{bankDetails.name}</p>
-                    </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-secondary/30 rounded-lg p-3">
+                    <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Bank Name</p>
+                    <p className="font-semibold text-sm">{bankDetails.bank}</p>
+                  </div>
+                  <div className="bg-secondary/30 rounded-lg p-3">
+                    <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Account Name</p>
+                    <p className="font-semibold text-sm truncate" title={bankDetails.name}>{bankDetails.name}</p>
                   </div>
                 </div>
               </div>

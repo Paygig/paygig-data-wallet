@@ -40,7 +40,7 @@ const History = () => {
     const fetchTransactions = async () => {
       if (!user) return;
       setLoading(true);
-      
+
       let query = supabase
         .from('transactions')
         .select('*')
@@ -53,9 +53,9 @@ const History = () => {
       if (statusFilter !== 'all') {
         query = query.eq('status', statusFilter);
       }
-      
+
       const { data } = await query;
-      
+
       if (data) {
         setTransactions(data as Transaction[]);
       }
@@ -86,36 +86,33 @@ const History = () => {
       </header>
 
       {/* Filters */}
-      <div className="px-4 pt-4 space-y-3">
-        {/* Type filter */}
-        <div className="flex gap-2">
+      {/* Filters */}
+      <div className="px-4 pt-4 pb-2 sticky top-[60px] z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border/50">
+        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
           {typeFilters.map((f) => (
             <button
               key={f.value}
               onClick={() => setTypeFilter(f.value)}
               className={cn(
-                'px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all',
+                'px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all border',
                 typeFilter === f.value
-                  ? 'bg-primary text-primary-foreground shadow-sm'
-                  : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                  ? 'bg-primary border-primary text-primary-foreground shadow-sm'
+                  : 'bg-background border-border text-muted-foreground hover:bg-muted/50'
               )}
             >
               {f.label}
             </button>
           ))}
-        </div>
-
-        {/* Status filter */}
-        <div className="flex gap-2">
+          <div className="w-[1px] h-6 bg-border mx-1 self-center" />
           {statusFilters.map((f) => (
             <button
               key={f.value}
               onClick={() => setStatusFilter(f.value)}
               className={cn(
-                'px-3 py-1.5 rounded-full text-xs font-medium transition-all',
+                'px-4 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all border',
                 statusFilter === f.value
-                  ? 'bg-accent text-accent-foreground shadow-sm'
-                  : 'bg-secondary text-muted-foreground hover:bg-secondary/80'
+                  ? 'bg-accent border-accent text-accent-foreground shadow-sm'
+                  : 'bg-background border-border text-muted-foreground hover:bg-muted/50'
               )}
             >
               {f.label}
@@ -165,7 +162,7 @@ const History = () => {
                       <ArrowUpRight className="w-5 h-5 text-primary" />
                     )}
                   </div>
-                  
+
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2 mb-1">
                       <p className="font-semibold text-foreground truncate">
@@ -180,11 +177,11 @@ const History = () => {
                         {tx.status}
                       </span>
                     </div>
-                    
+
                     <p className="text-sm text-muted-foreground truncate mb-2">
                       {tx.description}
                     </p>
-                    
+
                     <div className="flex items-center justify-between">
                       <p className="text-xs text-muted-foreground">
                         {format(new Date(tx.created_at), 'MMM dd, yyyy • HH:mm')}

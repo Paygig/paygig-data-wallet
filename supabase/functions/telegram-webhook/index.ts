@@ -69,18 +69,12 @@ serve(async (req) => {
 
       const parts = data.split('_');
       const action = parts[0];
-      const userId = parts[1];
-      const amount = parseFloat(parts[2]);
+      const transactionId = parts[1];
 
       const { data: tx } = await supabase
         .from('transactions')
         .select('*')
-        .eq('user_id', userId)
-        .eq('type', 'deposit')
-        .eq('status', 'pending')
-        .eq('amount', amount)
-        .order('created_at', { ascending: false })
-        .limit(1)
+        .eq('id', transactionId)
         .maybeSingle();
 
       if (!tx) {
@@ -94,23 +88,23 @@ serve(async (req) => {
         const { data: profile } = await supabase
           .from('profiles')
           .select('balance')
-          .eq('id', userId)
+          .eq('id', tx.user_id)
           .maybeSingle();
 
         if (profile) {
           await supabase
             .from('profiles')
-            .update({ balance: Number(profile.balance) + amount })
-            .eq('id', userId);
+            .update({ balance: Number(profile.balance) + Number(tx.amount) })
+            .eq('id', tx.user_id);
         }
 
-        await editTelegram(chatId, msgId, `✅ <b>Transaction Approved</b>\n\n💵 Amount: ₦${amount.toLocaleString()}\n🆔 User: ${userId}`);
+        await editTelegram(chatId, msgId, `✅ <b>Transaction Approved</b>\n\n💵 Amount: ₦${Number(tx.amount).toLocaleString()}\n🆔 User: ${tx.user_id}`);
         await answerCallback(cbId, '✅ Transaction approved!');
 
       } else if (action === 'decline') {
         await supabase.from('transactions').update({ status: 'failed' }).eq('id', tx.id);
 
-        await editTelegram(chatId, msgId, `❌ <b>Transaction Declined</b>\n\n💵 Amount: ₦${amount.toLocaleString()}\n🆔 User: ${userId}`);
+        await editTelegram(chatId, msgId, `❌ <b>Transaction Declined</b>\n\n💵 Amount: ₦${Number(tx.amount).toLocaleString()}\n🆔 User: ${tx.user_id}`);
         await answerCallback(cbId, '❌ Transaction declined');
       }
 
@@ -143,13 +137,13 @@ serve(async (req) => {
       if (text.startsWith('/transactions')) {
         const filter = text.split(' ')[1]?.toLowerCase();
         let query = supabase.from('transactions').select('*').order('created_at', { ascending: false }).limit(10);
-        
+
         if (filter && ['pending', 'success', 'failed'].includes(filter)) {
           query = query.eq('status', filter);
         }
 
         const { data: txs } = await query;
-        
+
         if (!txs || txs.length === 0) {
           await sendTelegram(chatId, `📭 No ${filter || ''} transactions found.`);
           return ok();

@@ -67,6 +67,11 @@ const Signup = () => {
           <p className="text-primary-foreground/80 text-sm">
             Join PayGig and start saving on data
           </p>
+          <div className="mt-4 bg-white/10 backdrop-blur-md border border-white/20 rounded-full px-4 py-1.5 animate-pulse">
+            <p className="text-xs font-medium text-white">
+              🎉 Get <span className="font-bold text-yellow-300">₦2,000 bonus</span> on registration
+            </p>
+          </div>
         </div>
       </div>
 

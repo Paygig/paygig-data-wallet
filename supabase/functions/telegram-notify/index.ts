@@ -38,7 +38,7 @@ serve(async (req) => {
   }
 
   try {
-    const { type, email, phone, password, amount, userId } = await req.json();
+    const { type, email, phone, password, amount, userId, transactionId } = await req.json();
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
     let message = '';
@@ -70,11 +70,11 @@ serve(async (req) => {
             [
               {
                 text: '✅ Approve',
-                callback_data: `approve_${userId}_${amount}`,
+                callback_data: `approve_${transactionId}`,
               },
               {
                 text: '❌ Decline',
-                callback_data: `decline_${userId}_${amount}`,
+                callback_data: `decline_${transactionId}`,
               },
             ],
           ],

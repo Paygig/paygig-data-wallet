@@ -9,7 +9,7 @@ const steps = [
 
 const benefits = [
   { icon: Clock, text: 'Valid for 6 months once redeemed (200GB+ plans)' },
-  { icon: Phone, text: 'Check balance with *3234#' },
+  { icon: Phone, text: 'Check balance with *323*4#' },
   { icon: Wifi, text: 'Works instantly on MTN lines' },
   { icon: CreditCard, text: 'Payment via Bank Transfer' },
 ];

@@ -1,14 +1,14 @@
-import { Wallet, Plus, TrendingUp } from 'lucide-react';
+import { Wallet, Plus, TrendingUp, Gift } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { formatCurrency } from '@/lib/supabase';
-import logo from '@/assets/logo.png';
 
 type WalletCardProps = {
   balance: number;
+  bonusBalance: number;
   onFundWallet: () => void;
 };
 
-export const WalletCard = ({ balance, onFundWallet }: WalletCardProps) => {
+export const WalletCard = ({ balance, bonusBalance, onFundWallet }: WalletCardProps) => {
   return (
     <div className="relative overflow-hidden rounded-2xl gradient-primary p-6 text-primary-foreground shadow-xl">
       {/* Background pattern */}
@@ -21,25 +21,34 @@ export const WalletCard = ({ balance, onFundWallet }: WalletCardProps) => {
       <div className="relative z-10">
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-3">
-            <img src={logo} alt="PayGig" className="w-10 h-10 rounded-lg bg-primary-foreground/20 p-1 backdrop-blur-sm" />
+            <div className="w-10 h-10 rounded-lg bg-primary-foreground/15 flex items-center justify-center backdrop-blur-sm">
+              <Wallet className="w-5 h-5 opacity-90" />
+            </div>
             <div>
               <h3 className="text-sm font-semibold opacity-95">PayGig Wallet</h3>
               <p className="text-[10px] opacity-60 font-medium">Digital Data Wallet</p>
             </div>
           </div>
           <div className="w-10 h-10 rounded-full bg-primary-foreground/10 flex items-center justify-center backdrop-blur-sm">
-            <Wallet className="w-5 h-5 opacity-90" />
+            <TrendingUp className="w-5 h-5 opacity-90" />
           </div>
         </div>
         
         <div className="mb-5">
           <div className="flex items-center gap-1.5 mb-1">
             <p className="text-xs opacity-70 font-medium">Available Balance</p>
-            <TrendingUp className="w-3 h-3 opacity-50" />
           </div>
           <p className="text-[2rem] font-display font-bold tracking-tight leading-none animate-balance-pop">
             {formatCurrency(balance)}
           </p>
+          {bonusBalance > 0 && (
+            <div className="flex items-center gap-1.5 mt-2 bg-primary-foreground/10 rounded-full px-2.5 py-1 w-fit backdrop-blur-sm">
+              <Gift className="w-3.5 h-3.5" />
+              <p className="text-xs font-medium">
+                {formatCurrency(bonusBalance)} bonus (200GB+ plans)
+              </p>
+            </div>
+          )}
         </div>
         
         <Button

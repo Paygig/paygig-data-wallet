@@ -7,6 +7,7 @@ export type Profile = {
   email: string;
   phone: string | null;
   balance: number;
+  bonus_balance: number;
   referral_code: string;
   referred_by: string | null;
   created_at: string;
@@ -42,6 +43,7 @@ export const dataPlans = [
     price: 7500,
     badge: 'Try Me',
     validity: '30 Days',
+    bonusEligible: false,
   },
   {
     id: 'streamer',
@@ -49,6 +51,7 @@ export const dataPlans = [
     data: '100GB',
     price: 14900,
     validity: '30 Days',
+    bonusEligible: false,
   },
   {
     id: 'professional',
@@ -56,6 +59,7 @@ export const dataPlans = [
     data: '200GB',
     price: 24900,
     validity: '6 Months',
+    bonusEligible: true,
   },
   {
     id: 'office-hub',
@@ -64,6 +68,7 @@ export const dataPlans = [
     price: 34500,
     badge: '🔥 Most Popular',
     validity: '6 Months',
+    bonusEligible: true,
   },
   {
     id: 'mega-tera',
@@ -72,6 +77,7 @@ export const dataPlans = [
     price: 64500,
     badge: 'Best Value',
     validity: '6 Months',
+    bonusEligible: true,
   },
 ];
 

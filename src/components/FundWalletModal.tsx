@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Copy, Check, Loader2, CheckCircle2 } from 'lucide-react';
+import { Copy, Check, Loader2, CheckCircle2, Sparkles, ArrowLeft } from 'lucide-react';
 import {
   Drawer,
   DrawerContent,
@@ -14,8 +14,6 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -63,7 +61,6 @@ export const FundWalletModal = ({
 
     setStep('verifying');
 
-    // Create pending transaction
     const { data, error } = await supabase.from('transactions').insert({
       user_id: user.id,
       type: 'deposit',
@@ -80,7 +77,6 @@ export const FundWalletModal = ({
       return;
     }
 
-    // Notify admin via Telegram
     try {
       await supabase.functions.invoke('telegram-notify', {
         body: {
@@ -95,7 +91,6 @@ export const FundWalletModal = ({
       console.error('Failed to send telegram notification:', e);
     }
 
-    // Simulate verification progress
     const interval = setInterval(() => {
       setProgress((prev) => {
         if (prev >= 100) {
@@ -146,7 +141,7 @@ export const FundWalletModal = ({
                 key={amt}
                 variant="outline"
                 onClick={() => setAmount(amt.toString())}
-                className="h-12 border-border/40 hover:bg-primary/5 hover:border-primary/30 transition-all font-medium"
+                className="h-12 border-border/40 hover:bg-primary/5 hover:border-primary/30 transition-all font-medium rounded-xl"
               >
                 ₦{amt.toLocaleString()}
               </Button>
@@ -163,7 +158,7 @@ export const FundWalletModal = ({
       )}
 
       {step === 'bank' && bankDetails && (
-        <div className="space-y-6 animate-fade-in max-w-sm mx-auto">
+        <div className="space-y-5 animate-fade-in max-w-sm mx-auto">
           <div className="text-center mb-2">
             <p className="text-sm text-muted-foreground">Transfer exactly</p>
             <p className="text-3xl font-bold font-display text-primary mt-1">
@@ -171,18 +166,18 @@ export const FundWalletModal = ({
             </p>
           </div>
 
-          <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-border/40 overflow-hidden">
-            <div className="p-4 border-b border-border/10">
+          <div className="bg-card rounded-2xl shadow-card border border-border/40 overflow-hidden">
+            <div className="p-3 border-b border-border/10">
               <p className="text-xs text-muted-foreground uppercase tracking-widest text-center font-medium">Bank Details</p>
             </div>
 
-            <div className="p-5 space-y-6">
-              <div className="flex flex-col items-center gap-1.5">
-                <span className="text-sm text-muted-foreground">Bank Name</span>
+            <div className="p-5 space-y-5">
+              <div className="flex flex-col items-center gap-1">
+                <span className="text-xs text-muted-foreground uppercase tracking-wider">Bank Name</span>
                 <span className="font-bold text-lg">{bankDetails.bank}</span>
               </div>
 
-              <div className="bg-zinc-100 dark:bg-zinc-800/50 rounded-xl p-4 flex flex-col items-center justify-center relative group cursor-pointer hover:bg-zinc-200/50 dark:hover:bg-zinc-800 transition-colors"
+              <div className="bg-secondary rounded-xl p-4 flex flex-col items-center justify-center relative group cursor-pointer hover:bg-secondary/80 transition-colors"
                 onClick={() => handleCopy(bankDetails.acc)}>
                 <span className="text-xs text-muted-foreground mb-1 uppercase tracking-wider">Account Number</span>
                 <div className="flex items-center gap-3">
@@ -190,22 +185,22 @@ export const FundWalletModal = ({
                     {bankDetails.acc}
                   </span>
                   {copied ? (
-                    <Check className="w-5 h-5 text-green-500 animate-in zoom-in" />
+                    <Check className="w-5 h-5 text-success animate-scale-in" />
                   ) : (
                     <Copy className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" />
                   )}
                 </div>
               </div>
 
-              <div className="flex flex-col items-center gap-1.5 pt-1">
-                <span className="text-sm text-muted-foreground">Account Name</span>
+              <div className="flex flex-col items-center gap-1">
+                <span className="text-xs text-muted-foreground uppercase tracking-wider">Account Name</span>
                 <span className="font-medium text-center">{bankDetails.name}</span>
               </div>
             </div>
 
-            <div className="bg-amber-50 dark:bg-amber-950/30 p-3 text-center border-t border-amber-100 dark:border-amber-900/50">
-              <p className="text-xs text-amber-700 dark:text-amber-400 font-medium flex items-center justify-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+            <div className="bg-accent/10 p-3 text-center border-t border-accent/20">
+              <p className="text-xs text-accent-foreground font-medium flex items-center justify-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
                 Use this account for this transaction only
               </p>
             </div>
@@ -221,28 +216,32 @@ export const FundWalletModal = ({
           <Button
             variant="ghost"
             onClick={() => setStep('amount')}
-            className="w-full text-muted-foreground hover:text-foreground"
+            className="w-full text-muted-foreground hover:text-foreground gap-2"
           >
-            Cancel and go back
+            <ArrowLeft className="w-4 h-4" />
+            Go back
           </Button>
         </div>
       )}
 
       {step === 'verifying' && (
-        <div className="py-12 space-y-8 text-center animate-fade-in max-w-xs mx-auto">
-          <div className="relative">
-            <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full animate-pulse" />
-            <Loader2 className="w-20 h-20 mx-auto text-primary animate-spin relative z-10" />
+        <div className="py-10 space-y-6 text-center animate-fade-in max-w-xs mx-auto">
+          <div className="relative w-24 h-24 mx-auto">
+            <div className="absolute inset-0 rounded-full border-4 border-muted" />
+            <div className="absolute inset-0 rounded-full border-4 border-primary border-t-transparent animate-spin" />
+            <div className="absolute inset-3 rounded-full bg-primary/10 flex items-center justify-center">
+              <Loader2 className="w-10 h-10 text-primary animate-spin" />
+            </div>
           </div>
           <div className="space-y-2">
-            <h3 className="font-bold text-xl">Verifying Transaction</h3>
+            <h3 className="font-display font-bold text-xl">Verifying Payment</h3>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Please hold on tight while we confirm your payment with the bank server...
+              Please hold on while we confirm your payment...
             </p>
           </div>
-          <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
+          <div className="w-full bg-muted rounded-full h-1.5 overflow-hidden">
             <div
-              className="bg-primary h-full transition-all duration-300 ease-out"
+              className="bg-primary h-full rounded-full transition-all duration-300 ease-out"
               style={{ width: `${progress}%` }}
             />
           </div>
@@ -250,24 +249,41 @@ export const FundWalletModal = ({
       )}
 
       {step === 'success' && (
-        <div className="py-8 space-y-8 text-center animate-scale-in max-w-sm mx-auto">
-          <div className="w-24 h-24 mx-auto rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center mb-6">
-            <CheckCircle2 className="w-14 h-14 text-green-600 dark:text-green-500" />
+        <div className="py-6 space-y-6 text-center animate-scale-in max-w-sm mx-auto">
+          <div className="relative">
+            <div className="w-24 h-24 mx-auto rounded-full bg-success/15 flex items-center justify-center animate-[bounce-in_0.6s_ease-out]">
+              <CheckCircle2 className="w-14 h-14 text-success animate-[check-pop_0.4s_ease-out_0.3s_both]" />
+            </div>
+            {/* Celebration particles */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              {[...Array(6)].map((_, i) => (
+                <div
+                  key={i}
+                  className="absolute w-2 h-2 rounded-full bg-accent animate-[particle_0.8s_ease-out_forwards]"
+                  style={{
+                    animationDelay: `${0.3 + i * 0.06}s`,
+                    transform: `rotate(${i * 60}deg) translateY(-40px)`,
+                  }}
+                />
+              ))}
+            </div>
           </div>
 
           <div className="space-y-2">
             <h3 className="font-display font-bold text-2xl text-foreground">Payment Submitted!</h3>
-            <p className="text-muted-foreground">
-              Your transaction is being processed. Your wallet will be credited once confirmed.
+            <p className="text-sm text-muted-foreground">
+              Your wallet will be credited once the admin confirms your payment.
             </p>
-            <div className="bg-muted/30 py-2 px-4 rounded-lg inline-block mt-2">
-              <span className="text-xl font-bold font-display text-primary">
-                +{formatCurrency(parseFloat(amount))}
-              </span>
-            </div>
           </div>
 
-          <Button onClick={handleClose} className="w-full h-12 gradient-success text-white shadow-lg shadow-green-500/20 font-semibold text-lg rounded-xl mt-4">
+          <div className="bg-success/10 border border-success/20 rounded-2xl p-4 inline-flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-success" />
+            <span className="text-xl font-bold font-display text-success">
+              +{formatCurrency(parseFloat(amount))}
+            </span>
+          </div>
+
+          <Button onClick={handleClose} className="w-full h-12 bg-success hover:bg-success/90 text-success-foreground shadow-lg font-semibold text-lg rounded-xl">
             Done
           </Button>
         </div>
@@ -278,7 +294,7 @@ export const FundWalletModal = ({
   if (!isMobile) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-[425px] p-0 overflow-hidden bg-zinc-50 dark:bg-zinc-950 border-none">
+        <DialogContent className="sm:max-w-[425px] p-0 overflow-hidden border-border/40">
           <DialogHeader className="pt-6 px-6 border-b border-border/10 pb-4">
             <DialogTitle className="font-display text-xl text-center">
               {step === 'amount' && 'Fund Your Wallet'}
@@ -295,7 +311,7 @@ export const FundWalletModal = ({
 
   return (
     <Drawer open={open} onOpenChange={handleClose}>
-      <DrawerContent className="max-h-[90vh] bg-zinc-50 dark:bg-zinc-950">
+      <DrawerContent className="max-h-[90vh]">
         <DrawerHeader className="border-b border-border/10 pb-4">
           <DrawerTitle className="font-display text-xl text-center">
             {step === 'amount' && 'Fund Your Wallet'}

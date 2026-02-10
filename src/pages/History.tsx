@@ -1,18 +1,19 @@
 import { useState, useEffect } from 'react';
-import { ArrowDownLeft, ArrowUpRight, Eye, EyeOff, Package } from 'lucide-react';
+import { ArrowDownLeft, ArrowUpRight, Eye, EyeOff, Package, Copy, Check, Phone } from 'lucide-react';
 import { BottomNav } from '@/components/BottomNav';
 import { Button } from '@/components/ui/button';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+} from '@/components/ui/drawer';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { formatCurrency, type Transaction } from '@/lib/supabase';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
+import { useToast } from '@/hooks/use-toast';
 
 const typeFilters = [
   { value: 'all', label: 'All' },
@@ -29,10 +30,12 @@ const statusFilters = [
 
 const History = () => {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCoupon, setSelectedCoupon] = useState<string | null>(null);
   const [couponVisible, setCouponVisible] = useState(false);
+  const [copied, setCopied] = useState(false);
   const [typeFilter, setTypeFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
 
@@ -78,6 +81,15 @@ const History = () => {
     }
   };
 
+  const handleCopyCoupon = async () => {
+    if (!selectedCoupon) return;
+    const textToCopy = `${selectedCoupon}\n\nRedeem by dialing: *460*6*1#`;
+    await navigator.clipboard.writeText(textToCopy);
+    setCopied(true);
+    toast({ description: 'Coupon code & instructions copied!' });
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   return (
     <div className="min-h-screen bg-background pb-20">
       {/* Header */}
@@ -85,7 +97,6 @@ const History = () => {
         <h1 className="font-display font-bold text-xl text-center">Transaction History</h1>
       </header>
 
-      {/* Filters */}
       {/* Filters */}
       <div className="px-4 pt-4 pb-2 sticky top-[60px] z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border/50">
         <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
@@ -200,10 +211,11 @@ const History = () => {
                       <Button
                         variant="outline"
                         size="sm"
-                        className="mt-3 w-full"
+                        className="mt-3 w-full rounded-xl"
                         onClick={() => {
                           setSelectedCoupon(tx.coupon_code);
                           setCouponVisible(false);
+                          setCopied(false);
                         }}
                       >
                         <Eye className="w-4 h-4 mr-2" />
@@ -220,21 +232,22 @@ const History = () => {
 
       <BottomNav />
 
-      {/* Coupon Dialog */}
-      <Dialog open={!!selectedCoupon} onOpenChange={() => setSelectedCoupon(null)}>
-        <DialogContent className="sm:max-w-md mx-4">
-          <DialogHeader>
-            <DialogTitle className="font-display">Your Coupon Code</DialogTitle>
-          </DialogHeader>
-          <div className="py-4">
-            <div className="bg-accent/20 border-2 border-accent rounded-xl p-4 text-center">
-              <div className="flex items-center justify-center gap-2">
+      {/* Enhanced Coupon Drawer */}
+      <Drawer open={!!selectedCoupon} onOpenChange={() => setSelectedCoupon(null)}>
+        <DrawerContent className="max-h-[85vh]">
+          <DrawerHeader>
+            <DrawerTitle className="font-display text-xl">Your Coupon Code</DrawerTitle>
+          </DrawerHeader>
+          <div className="px-5 pb-8 space-y-5">
+            {/* Coupon Code Display */}
+            <div className="bg-accent/15 border-2 border-accent/40 rounded-2xl p-5 text-center">
+              <div className="flex items-center justify-center gap-3">
                 {couponVisible ? (
                   <span className="font-mono text-2xl font-bold tracking-wider">
                     {selectedCoupon}
                   </span>
                 ) : (
-                  <span className="font-mono text-2xl font-bold tracking-wider">
+                  <span className="font-mono text-2xl font-bold tracking-wider text-muted-foreground">
                     ••••••••••
                   </span>
                 )}
@@ -242,6 +255,7 @@ const History = () => {
                   variant="ghost"
                   size="icon"
                   onClick={() => setCouponVisible(!couponVisible)}
+                  className="rounded-xl"
                 >
                   {couponVisible ? (
                     <EyeOff className="w-5 h-5" />
@@ -251,12 +265,52 @@ const History = () => {
                 </Button>
               </div>
             </div>
-            <p className="text-xs text-center text-muted-foreground mt-3">
-              Use this code to activate your MTN data plan
-            </p>
+
+            {/* Redeem Instructions */}
+            <div className="bg-primary/5 border border-primary/15 rounded-2xl p-4 text-left space-y-2">
+              <div className="flex items-center gap-2">
+                <Phone className="w-4 h-4 text-primary" />
+                <p className="font-semibold text-sm">How to Redeem</p>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Copy and redeem this code by dialing:
+              </p>
+              <p className="font-mono font-bold text-primary text-lg">*460*6*1#</p>
+              <p className="text-xs text-muted-foreground">
+                Enter the code ending with 'S' when prompted
+              </p>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="space-y-3">
+              <Button
+                onClick={handleCopyCoupon}
+                className="w-full h-12 gradient-primary text-primary-foreground shadow-button rounded-xl font-semibold"
+                disabled={!couponVisible}
+              >
+                {copied ? (
+                  <>
+                    <Check className="w-5 h-5 mr-2" />
+                    Copied!
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-5 h-5 mr-2" />
+                    Copy Code & Instructions
+                  </>
+                )}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => setSelectedCoupon(null)}
+                className="w-full h-11 rounded-xl"
+              >
+                Close
+              </Button>
+            </div>
           </div>
-        </DialogContent>
-      </Dialog>
+        </DrawerContent>
+      </Drawer>
     </div>
   );
 };

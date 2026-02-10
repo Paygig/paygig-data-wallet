@@ -48,7 +48,7 @@ const Support = () => {
               <div>
                 <p className="font-medium text-sm">How do I use my coupon code?</p>
                 <p className="text-sm text-muted-foreground">
-                  Dial *131*1# and follow the prompts to enter your coupon code.
+                  Dial *460*6*1# and follow the prompts to enter your coupon code.
                 </p>
               </div>
               <div>

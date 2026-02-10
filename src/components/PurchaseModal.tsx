@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Loader2, CheckCircle2, Copy, Check, AlertCircle, Phone, Gift } from 'lucide-react';
+import { Loader2, CheckCircle2, Copy, Check, AlertCircle, Phone, Gift, Sparkles } from 'lucide-react';
 import {
   Drawer,
   DrawerContent,
@@ -68,7 +68,6 @@ export const PurchaseModal = ({
 
     const code = generateCouponCode();
 
-    // Calculate deductions
     const bonusToUse = plan.bonusEligible ? Math.min(bonusBalance, plan.price) : 0;
     const balanceToDeduct = plan.price - bonusToUse;
 
@@ -142,39 +141,41 @@ export const PurchaseModal = ({
           </DrawerTitle>
         </DrawerHeader>
 
-        <div className="px-4 pb-8">
+        <div className="px-5 pb-8">
           {step === 'confirm' && (
             <div className="space-y-4 animate-fade-in">
-              <div className="bg-secondary rounded-xl p-4">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-muted-foreground">Plan</span>
-                  <span className="font-semibold">{plan.name}</span>
+              <div className="bg-card border border-border/40 rounded-2xl p-4 shadow-card">
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Plan</span>
+                    <span className="font-semibold">{plan.name}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Data</span>
+                    <span className="font-semibold">{plan.data}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Validity</span>
+                    <span className="font-semibold">{plan.validity}</span>
+                  </div>
                 </div>
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-muted-foreground">Data</span>
-                  <span className="font-semibold">{plan.data}</span>
-                </div>
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-muted-foreground">Validity</span>
-                  <span className="font-semibold">{plan.validity}</span>
-                </div>
-                <div className="border-t border-border my-3" />
+                <div className="border-t border-border/40 my-3" />
                 <div className="flex justify-between items-center">
                   <span className="font-semibold">Total</span>
-                  <span className="text-xl font-display font-bold text-primary">
+                  <span className="text-2xl font-display font-bold text-primary">
                     {formatCurrency(plan.price)}
                   </span>
                 </div>
               </div>
 
-              <div className="bg-muted rounded-lg p-3 space-y-2">
+              <div className="bg-secondary/50 rounded-xl p-3.5 space-y-2">
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-muted-foreground">Your Balance</span>
                   <span className="font-semibold">{formatCurrency(userBalance)}</span>
                 </div>
                 {plan.bonusEligible && bonusBalance > 0 && (
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground flex items-center gap-1">
+                    <span className="text-sm text-muted-foreground flex items-center gap-1.5">
                       <Gift className="w-3.5 h-3.5 text-accent" />
                       Bonus Applied
                     </span>
@@ -186,16 +187,17 @@ export const PurchaseModal = ({
               </div>
 
               {plan.bonusEligible && bonusBalance > 0 && (
-                <div className="bg-accent/10 border border-accent/30 rounded-lg p-2.5">
-                  <p className="text-xs text-center text-accent-foreground">
-                    🎁 ₦{bonusUsed.toLocaleString()} signup bonus applied to this plan!
+                <div className="bg-accent/10 border border-accent/20 rounded-xl p-3 flex items-center justify-center gap-2">
+                  <Sparkles className="w-4 h-4 text-accent" />
+                  <p className="text-xs text-accent-foreground font-medium">
+                    ₦{bonusUsed.toLocaleString()} signup bonus applied!
                   </p>
                 </div>
               )}
 
               <Button
                 onClick={handlePurchase}
-                className="w-full gradient-primary text-primary-foreground shadow-button"
+                className="w-full h-12 gradient-primary text-primary-foreground shadow-button rounded-xl font-semibold text-base"
               >
                 Confirm Purchase
               </Button>
@@ -204,25 +206,25 @@ export const PurchaseModal = ({
 
           {step === 'processing' && (
             <div className="py-8 text-center animate-fade-in">
-              <div className="relative w-20 h-20 mx-auto mb-6">
+              <div className="relative w-24 h-24 mx-auto mb-6">
                 <div className="absolute inset-0 rounded-full border-4 border-muted" />
                 <div className="absolute inset-0 rounded-full border-4 border-primary border-t-transparent animate-spin" />
                 <div className="absolute inset-3 rounded-full bg-primary/10 flex items-center justify-center">
-                  <Loader2 className="w-8 h-8 text-primary animate-spin" />
+                  <Loader2 className="w-10 h-10 text-primary animate-spin" />
                 </div>
               </div>
-              <p className="font-display font-semibold text-lg mb-1">Processing Purchase</p>
+              <p className="font-display font-bold text-lg mb-1">Processing Purchase</p>
               <p className="text-sm text-muted-foreground">Generating your coupon code...</p>
-              <div className="mt-4 mx-auto w-48 h-1.5 bg-muted rounded-full overflow-hidden">
+              <div className="mt-5 mx-auto w-48 h-1.5 bg-muted rounded-full overflow-hidden">
                 <div className="h-full bg-primary rounded-full animate-[progress_5s_ease-in-out_forwards]" />
               </div>
             </div>
           )}
 
           {step === 'success' && (
-            <div className={`py-6 space-y-5 text-center ${showSuccess ? 'animate-scale-in' : ''}`}>
+            <div className={`py-4 space-y-5 text-center ${showSuccess ? 'animate-scale-in' : ''}`}>
               <div className="relative">
-                <div className="w-24 h-24 mx-auto rounded-full bg-success/20 flex items-center justify-center animate-[bounce-in_0.6s_ease-out]">
+                <div className="w-24 h-24 mx-auto rounded-full bg-success/15 flex items-center justify-center animate-[bounce-in_0.6s_ease-out]">
                   <CheckCircle2 className="w-14 h-14 text-success animate-[check-pop_0.4s_ease-out_0.3s_both]" />
                 </div>
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
@@ -241,29 +243,29 @@ export const PurchaseModal = ({
 
               <div>
                 <p className="font-display font-bold text-xl mb-3">Your Coupon Code</p>
-                <div className="bg-accent/20 border-2 border-accent rounded-xl p-4 flex items-center justify-between">
+                <div className="bg-accent/15 border-2 border-accent/40 rounded-2xl p-4 flex items-center justify-between">
                   <span className="font-mono text-xl font-bold tracking-wider">{couponCode}</span>
-                  <Button variant="ghost" size="icon" onClick={handleCopy}>
+                  <Button variant="ghost" size="icon" onClick={handleCopy} className="rounded-xl">
                     {copied ? <Check className="w-5 h-5 text-success" /> : <Copy className="w-5 h-5" />}
                   </Button>
                 </div>
               </div>
 
-              <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 text-left">
-                <div className="flex items-center gap-2 mb-2">
+              <div className="bg-primary/5 border border-primary/15 rounded-2xl p-4 text-left space-y-2">
+                <div className="flex items-center gap-2">
                   <Phone className="w-4 h-4 text-primary" />
                   <p className="font-semibold text-sm">How to Redeem</p>
                 </div>
                 <p className="text-sm text-muted-foreground">
                   Copy and redeem this code by dialing:
                 </p>
-                <p className="font-mono font-bold text-primary text-lg mt-1">*460*6*1#</p>
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="font-mono font-bold text-primary text-lg">*460*6*1#</p>
+                <p className="text-xs text-muted-foreground">
                   Enter the code ending with 'S' when prompted
                 </p>
               </div>
 
-              <Button onClick={handleClose} className="w-full gradient-primary text-primary-foreground shadow-button">
+              <Button onClick={handleClose} className="w-full h-12 gradient-primary text-primary-foreground shadow-button rounded-xl font-semibold text-base">
                 Done
               </Button>
             </div>
@@ -271,8 +273,8 @@ export const PurchaseModal = ({
 
           {step === 'insufficient' && (
             <div className="py-6 space-y-6 text-center animate-fade-in">
-              <div className="w-20 h-20 mx-auto rounded-full bg-destructive/20 flex items-center justify-center">
-                <AlertCircle className="w-12 h-12 text-destructive" />
+              <div className="w-24 h-24 mx-auto rounded-full bg-destructive/15 flex items-center justify-center">
+                <AlertCircle className="w-14 h-14 text-destructive" />
               </div>
 
               <div>
@@ -282,7 +284,7 @@ export const PurchaseModal = ({
                 </p>
               </div>
 
-              <Button onClick={handleClose} variant="outline" className="w-full">
+              <Button onClick={handleClose} variant="outline" className="w-full h-12 rounded-xl font-semibold">
                 Fund Wallet
               </Button>
             </div>

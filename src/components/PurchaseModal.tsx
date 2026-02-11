@@ -205,18 +205,36 @@ export const PurchaseModal = ({
           )}
 
           {step === 'processing' && (
-            <div className="py-8 text-center animate-fade-in">
-              <div className="relative w-24 h-24 mx-auto mb-6">
-                <div className="absolute inset-0 rounded-full border-4 border-muted" />
-                <div className="absolute inset-0 rounded-full border-4 border-primary border-t-transparent animate-spin" />
-                <div className="absolute inset-3 rounded-full bg-primary/10 flex items-center justify-center">
-                  <Loader2 className="w-10 h-10 text-primary animate-spin" />
+            <div className="py-10 text-center animate-fade-in">
+              {/* Pulsing orb animation */}
+              <div className="relative w-28 h-28 mx-auto mb-6">
+                <div className="absolute inset-0 rounded-full bg-primary/10 animate-[pulse-ring_1.5s_ease-in-out_infinite]" />
+                <div className="absolute inset-3 rounded-full bg-primary/15 animate-[pulse-ring_1.5s_ease-in-out_0.3s_infinite]" />
+                <div className="absolute inset-6 rounded-full bg-primary/20 animate-[pulse-ring_1.5s_ease-in-out_0.6s_infinite]" />
+                <div className="absolute inset-8 rounded-full gradient-primary flex items-center justify-center shadow-lg shadow-primary/30">
+                  <div className="w-5 h-5 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
                 </div>
               </div>
-              <p className="font-display font-bold text-lg mb-1">Processing Purchase</p>
-              <p className="text-sm text-muted-foreground">Generating your coupon code...</p>
-              <div className="mt-5 mx-auto w-48 h-1.5 bg-muted rounded-full overflow-hidden">
-                <div className="h-full bg-primary rounded-full animate-[progress_5s_ease-in-out_forwards]" />
+
+              <div className="space-y-3">
+                <p className="font-display font-bold text-xl">Generating Coupon</p>
+                <div className="flex items-center justify-center gap-1.5">
+                  {[0, 1, 2].map((i) => (
+                    <div
+                      key={i}
+                      className="w-2 h-2 rounded-full bg-primary animate-[bounce-dot_1.4s_ease-in-out_infinite]"
+                      style={{ animationDelay: `${i * 0.2}s` }}
+                    />
+                  ))}
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Please wait while we process your purchase...
+                </p>
+              </div>
+
+              <div className="mt-6 mx-auto w-56 h-1.5 bg-muted rounded-full overflow-hidden">
+                <div className="h-full rounded-full animate-[progress_5s_ease-in-out_forwards]"
+                  style={{ background: 'linear-gradient(90deg, hsl(var(--primary)), hsl(var(--accent)))' }} />
               </div>
             </div>
           )}

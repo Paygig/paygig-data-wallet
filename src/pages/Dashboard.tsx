@@ -145,7 +145,37 @@ const Dashboard = () => {
         </div>
       </section>
 
-      <section className="px-5 mt-7 mb-4">
+      {/* Download APK Banner */}
+      <section className="px-5 mt-6">
+        <div className="animate-fade-in-up" style={{ animationDelay: '0.55s', opacity: 0 }}>
+          <div
+            className="relative overflow-hidden rounded-2xl p-4 cursor-pointer active:scale-[0.98] transition-transform"
+            style={{
+              background: 'linear-gradient(135deg, hsl(var(--accent)) 0%, hsl(40, 100%, 45%) 100%)',
+            }}
+            onClick={() => window.open('#', '_blank')}
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-xl bg-foreground/10 flex items-center justify-center flex-shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6 text-foreground">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <p className="font-display font-bold text-sm text-foreground">Download Our App</p>
+                <p className="text-xs text-foreground/70 mt-0.5">Get ₦500 bonus when you install the APK!</p>
+              </div>
+              <div className="bg-foreground text-background text-xs font-bold px-3 py-1.5 rounded-full flex-shrink-0">
+                +₦500
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="px-5 mt-5 mb-4">
         <div className="animate-fade-in-up" style={{ animationDelay: '0.6s', opacity: 0 }}>
           <HowToRedeemCard />
         </div>

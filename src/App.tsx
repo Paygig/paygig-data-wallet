@@ -12,6 +12,7 @@ import History from "./pages/History";
 import Profile from "./pages/Profile";
 import Support from "./pages/Support";
 import NotFound from "./pages/NotFound";
+import ForgotPassword from "./pages/ForgotPassword";
 import { Loader2 } from "lucide-react";
 
 const queryClient = new QueryClient();
@@ -62,6 +63,14 @@ const AppRoutes = () => (
       element={
         <PublicRoute>
           <Login />
+        </PublicRoute>
+      }
+    />
+    <Route
+      path="/forgot-password"
+      element={
+        <PublicRoute>
+          <ForgotPassword />
         </PublicRoute>
       }
     />

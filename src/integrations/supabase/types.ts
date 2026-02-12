@@ -53,6 +53,36 @@ export type Database = {
         }
         Relationships: []
       }
+      data_plans: {
+        Row: {
+          badge: string | null
+          bonus_eligible: boolean | null
+          data: string
+          id: string
+          name: string
+          price: number
+          validity: string
+        }
+        Insert: {
+          badge?: string | null
+          bonus_eligible?: boolean | null
+          data: string
+          id: string
+          name: string
+          price: number
+          validity: string
+        }
+        Update: {
+          badge?: string | null
+          bonus_eligible?: boolean | null
+          data?: string
+          id?: string
+          name?: string
+          price?: number
+          validity?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           balance: number
@@ -133,6 +163,10 @@ export type Database = {
     }
     Functions: {
       lookup_referral_code: { Args: { _code: string }; Returns: string }
+      purchase_plan: {
+        Args: { _plan_id: string; _user_id: string }
+        Returns: Json
+      }
     }
     Enums: {
       [_ in never]: never

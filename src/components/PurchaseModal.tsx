@@ -10,12 +10,13 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { formatCurrency, generateCouponCode } from '@/lib/supabase';
+import { formatCurrency } from '@/lib/supabase';
 
 type PurchaseModalProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   plan: {
+    id: string;
     name: string;
     data: string;
     price: number;
@@ -66,41 +67,21 @@ export const PurchaseModal = ({
 
     setStep('processing');
 
-    const code = generateCouponCode();
-
-    const bonusToUse = plan.bonusEligible ? Math.min(bonusBalance, plan.price) : 0;
-    const balanceToDeduct = plan.price - bonusToUse;
-
-    const { error: balanceError } = await supabase
-      .from('profiles')
-      .update({
-        balance: userBalance - balanceToDeduct,
-        bonus_balance: bonusBalance - bonusToUse,
-      })
-      .eq('id', user.id);
-
-    if (balanceError) {
-      toast({ description: 'Failed to process purchase', variant: 'destructive' });
-      setStep('confirm');
-      return;
-    }
-
-    const { error: txError } = await supabase.from('transactions').insert({
-      user_id: user.id,
-      type: 'purchase',
-      amount: plan.price,
-      status: 'success',
-      coupon_code: code,
-      description: `${plan.name} (${plan.data}) - ${plan.validity}`,
+    // Use server-side RPC for secure purchase
+    const { data, error } = await supabase.rpc('purchase_plan', {
+      _plan_id: plan.id,
+      _user_id: user.id,
     });
 
-    if (txError) {
-      toast({ description: 'Failed to record transaction', variant: 'destructive' });
+    const result = data as unknown as { success: boolean; error?: string; coupon_code?: string };
+
+    if (error || !result?.success) {
+      toast({ description: result?.error || 'Failed to process purchase', variant: 'destructive' });
       setStep('confirm');
       return;
     }
 
-    setCouponCode(code);
+    setCouponCode(result.coupon_code || '');
 
     setTimeout(async () => {
       await refreshProfile();

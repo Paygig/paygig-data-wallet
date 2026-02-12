@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Copy, Check, Loader2, CheckCircle2, Sparkles, ArrowLeft } from 'lucide-react';
+import { Copy, Check, Loader2, CheckCircle2, Sparkles, ArrowLeft, Wallet, Banknote, Send } from 'lucide-react';
 import {
   Drawer,
   DrawerContent,
@@ -13,7 +13,6 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -110,97 +109,140 @@ export const FundWalletModal = ({
     onOpenChange(false);
   };
 
-  const quickAmounts = [1000, 5000, 10000, 20000];
+  const quickAmounts = [500, 1000, 2000, 5000, 10000, 20000];
+
+  const handleAmountInput = (digit: string) => {
+    if (digit === 'clear') {
+      setAmount('');
+      return;
+    }
+    if (digit === 'back') {
+      setAmount((prev) => prev.slice(0, -1));
+      return;
+    }
+    if (amount.length >= 7) return;
+    setAmount((prev) => prev + digit);
+  };
 
   const Content = (
-    <div className="px-6 py-6 overflow-y-auto">
+    <div className="px-5 py-5 overflow-y-auto">
       {step === 'amount' && (
-        <div className="space-y-6 animate-fade-in max-w-sm mx-auto">
-          <div className="flex flex-col items-center">
-            <span className="text-sm font-medium text-muted-foreground mb-2">How much would you like to add?</span>
-            <div className="relative w-full max-w-[200px]">
-              <span className="absolute left-0 top-1/2 -translate-y-1/2 text-muted-foreground font-medium text-2xl">
-                ₦
-              </span>
-              <Input
-                id="amount"
-                type="number"
-                placeholder="0"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                className="pl-8 text-3xl font-bold border-none shadow-none text-center h-14 bg-transparent focus-visible:ring-0 px-0"
-                autoFocus
-              />
+        <div className="space-y-5 animate-fade-in max-w-sm mx-auto">
+          {/* Amount display */}
+          <div className="flex flex-col items-center pt-2 pb-4">
+            <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
+              <Wallet className="w-7 h-7 text-primary" />
             </div>
-            <div className="h-[1px] w-full bg-border mt-1" />
+            <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium mb-2">Enter Amount</p>
+            <div className="flex items-baseline gap-1">
+              <span className="text-muted-foreground font-semibold text-3xl">₦</span>
+              <span className="text-4xl font-bold font-display text-foreground min-h-[3rem] min-w-[2rem] text-center">
+                {amount ? parseInt(amount).toLocaleString() : '0'}
+              </span>
+            </div>
+            <div className="h-0.5 w-32 bg-gradient-to-r from-transparent via-primary/40 to-transparent mt-2" />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          {/* Quick amounts as pills */}
+          <div className="flex flex-wrap justify-center gap-2">
             {quickAmounts.map((amt) => (
-              <Button
+              <button
                 key={amt}
-                variant="outline"
                 onClick={() => setAmount(amt.toString())}
-                className="h-12 border-border/40 hover:bg-primary/5 hover:border-primary/30 transition-all font-medium rounded-xl"
+                className={`px-4 py-2 rounded-full text-sm font-semibold transition-all border ${
+                  amount === amt.toString()
+                    ? 'bg-primary text-primary-foreground border-primary shadow-button'
+                    : 'bg-secondary/50 text-foreground border-border/40 hover:border-primary/30 hover:bg-primary/5'
+                }`}
               >
                 ₦{amt.toLocaleString()}
-              </Button>
+              </button>
+            ))}
+          </div>
+
+          {/* Numpad */}
+          <div className="grid grid-cols-3 gap-2 max-w-[280px] mx-auto">
+            {['1', '2', '3', '4', '5', '6', '7', '8', '9', 'clear', '0', 'back'].map((key) => (
+              <button
+                key={key}
+                onClick={() => handleAmountInput(key)}
+                className={`h-14 rounded-xl font-semibold text-lg transition-all active:scale-95 ${
+                  key === 'clear'
+                    ? 'text-destructive bg-destructive/10 text-sm'
+                    : key === 'back'
+                    ? 'text-muted-foreground bg-secondary/50 text-sm'
+                    : 'text-foreground bg-secondary/30 hover:bg-secondary/60'
+                }`}
+              >
+                {key === 'back' ? '⌫' : key === 'clear' ? 'C' : key}
+              </button>
             ))}
           </div>
 
           <Button
             onClick={handleProceed}
-            className="w-full h-12 gradient-primary text-primary-foreground shadow-lg shadow-primary/20 font-semibold text-lg rounded-xl mt-4"
+            disabled={!amount || parseFloat(amount) <= 0}
+            className="w-full h-13 gradient-primary text-primary-foreground shadow-button font-semibold text-base rounded-xl mt-2"
           >
-            Continue to Payment
+            Continue
           </Button>
         </div>
       )}
 
       {step === 'bank' && bankDetails && (
         <div className="space-y-5 animate-fade-in max-w-sm mx-auto">
-          <div className="text-center mb-2">
-            <p className="text-sm text-muted-foreground">Transfer exactly</p>
+          {/* Amount badge */}
+          <div className="flex flex-col items-center mb-1">
+            <div className="w-14 h-14 rounded-2xl bg-accent/15 flex items-center justify-center mb-3">
+              <Banknote className="w-7 h-7 text-accent-foreground" />
+            </div>
+            <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium">Transfer exactly</p>
             <p className="text-3xl font-bold font-display text-primary mt-1">
               {formatCurrency(parseFloat(amount))}
             </p>
           </div>
 
-          <div className="bg-card rounded-2xl shadow-card border border-border/40 overflow-hidden">
-            <div className="p-3 border-b border-border/10">
-              <p className="text-xs text-muted-foreground uppercase tracking-widest text-center font-medium">Bank Details</p>
-            </div>
-
-            <div className="p-5 space-y-5">
-              <div className="flex flex-col items-center gap-1">
-                <span className="text-xs text-muted-foreground uppercase tracking-wider">Bank Name</span>
-                <span className="font-bold text-lg">{bankDetails.bank}</span>
-              </div>
-
-              <div className="bg-secondary rounded-xl p-4 flex flex-col items-center justify-center relative group cursor-pointer hover:bg-secondary/80 transition-colors"
-                onClick={() => handleCopy(bankDetails.acc)}>
-                <span className="text-xs text-muted-foreground mb-1 uppercase tracking-wider">Account Number</span>
-                <div className="flex items-center gap-3">
-                  <span className="font-mono text-2xl font-bold tracking-widest text-foreground">
-                    {bankDetails.acc}
-                  </span>
-                  {copied ? (
-                    <Check className="w-5 h-5 text-success animate-scale-in" />
-                  ) : (
-                    <Copy className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" />
-                  )}
+          {/* Bank card */}
+          <div className="bg-gradient-to-b from-card to-secondary/20 rounded-2xl border border-border/40 overflow-hidden">
+            <div className="p-5 space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] text-muted-foreground uppercase tracking-widest">Bank</span>
+                  <p className="font-bold text-base">{bankDetails.bank}</p>
+                </div>
+                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <Banknote className="w-5 h-5 text-primary" />
                 </div>
               </div>
 
-              <div className="flex flex-col items-center gap-1">
-                <span className="text-xs text-muted-foreground uppercase tracking-wider">Account Name</span>
-                <span className="font-medium text-center">{bankDetails.name}</span>
+              <button
+                onClick={() => handleCopy(bankDetails.acc)}
+                className="w-full bg-background rounded-xl p-4 flex items-center justify-between group hover:bg-primary/5 transition-colors border border-border/30"
+              >
+                <div className="text-left">
+                  <span className="text-[10px] text-muted-foreground uppercase tracking-widest">Account Number</span>
+                  <p className="font-mono text-xl font-bold tracking-wider text-foreground mt-0.5">
+                    {bankDetails.acc}
+                  </p>
+                </div>
+                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                  {copied ? (
+                    <Check className="w-5 h-5 text-success animate-scale-in" />
+                  ) : (
+                    <Copy className="w-5 h-5 text-primary" />
+                  )}
+                </div>
+              </button>
+
+              <div>
+                <span className="text-[10px] text-muted-foreground uppercase tracking-widest">Account Name</span>
+                <p className="font-semibold text-base mt-0.5">{bankDetails.name}</p>
               </div>
             </div>
 
-            <div className="bg-accent/10 p-3 text-center border-t border-accent/20">
-              <p className="text-xs text-accent-foreground font-medium flex items-center justify-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
+            <div className="bg-accent/10 px-4 py-2.5 border-t border-accent/20">
+              <p className="text-[11px] text-accent-foreground/80 font-medium flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
                 Use this account for this transaction only
               </p>
             </div>
@@ -208,41 +250,59 @@ export const FundWalletModal = ({
 
           <Button
             onClick={handleConfirmPayment}
-            className="w-full h-12 gradient-primary text-primary-foreground shadow-lg shadow-primary/20 font-semibold text-lg rounded-xl"
+            className="w-full h-13 gradient-primary text-primary-foreground shadow-button font-semibold text-base rounded-xl flex items-center gap-2"
           >
+            <Send className="w-4 h-4" />
             I've Sent the Money
           </Button>
 
-          <Button
-            variant="ghost"
+          <button
             onClick={() => setStep('amount')}
-            className="w-full text-muted-foreground hover:text-foreground gap-2"
+            className="w-full flex items-center justify-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors py-2"
           >
             <ArrowLeft className="w-4 h-4" />
-            Go back
-          </Button>
+            Change amount
+          </button>
         </div>
       )}
 
       {step === 'verifying' && (
         <div className="py-10 space-y-6 text-center animate-fade-in max-w-xs mx-auto">
-          <div className="relative w-24 h-24 mx-auto">
-            <div className="absolute inset-0 rounded-full border-4 border-muted" />
-            <div className="absolute inset-0 rounded-full border-4 border-primary border-t-transparent animate-spin" />
-            <div className="absolute inset-3 rounded-full bg-primary/10 flex items-center justify-center">
-              <Loader2 className="w-10 h-10 text-primary animate-spin" />
+          {/* Pulsing orb */}
+          <div className="relative w-28 h-28 mx-auto">
+            <div className="absolute inset-0 rounded-full bg-primary/20 animate-[pulse-ring_2s_ease-in-out_infinite]" />
+            <div className="absolute inset-3 rounded-full bg-primary/30 animate-[pulse-ring_2s_ease-in-out_infinite_0.3s]" />
+            <div className="absolute inset-6 rounded-full gradient-primary flex items-center justify-center shadow-button">
+              <Loader2 className="w-8 h-8 text-primary-foreground animate-spin" />
             </div>
           </div>
+
           <div className="space-y-2">
             <h3 className="font-display font-bold text-xl">Verifying Payment</h3>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Please hold on while we confirm your payment...
+              Hold on while we confirm your transfer...
             </p>
           </div>
-          <div className="w-full bg-muted rounded-full h-1.5 overflow-hidden">
+
+          {/* Bouncing dots */}
+          <div className="flex items-center justify-center gap-2">
+            {[0, 1, 2].map((i) => (
+              <div
+                key={i}
+                className="w-2.5 h-2.5 rounded-full bg-primary animate-[bounce-dot_1.4s_ease-in-out_infinite]"
+                style={{ animationDelay: `${i * 0.2}s` }}
+              />
+            ))}
+          </div>
+
+          {/* Gradient progress */}
+          <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
             <div
-              className="bg-primary h-full rounded-full transition-all duration-300 ease-out"
-              style={{ width: `${progress}%` }}
+              className="h-full rounded-full transition-all duration-500 ease-out"
+              style={{
+                width: `${progress}%`,
+                background: 'linear-gradient(90deg, hsl(var(--primary)), hsl(var(--accent)))',
+              }}
             />
           </div>
         </div>
@@ -254,7 +314,6 @@ export const FundWalletModal = ({
             <div className="w-24 h-24 mx-auto rounded-full bg-success/15 flex items-center justify-center animate-[bounce-in_0.6s_ease-out]">
               <CheckCircle2 className="w-14 h-14 text-success animate-[check-pop_0.4s_ease-out_0.3s_both]" />
             </div>
-            {/* Celebration particles */}
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
               {[...Array(6)].map((_, i) => (
                 <div
@@ -283,7 +342,7 @@ export const FundWalletModal = ({
             </span>
           </div>
 
-          <Button onClick={handleClose} className="w-full h-12 bg-success hover:bg-success/90 text-success-foreground shadow-lg font-semibold text-lg rounded-xl">
+          <Button onClick={handleClose} className="w-full h-13 bg-success hover:bg-success/90 text-success-foreground shadow-lg font-semibold text-base rounded-xl">
             Done
           </Button>
         </div>
